@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- CSS only -->
+<style>
+    .container{
+        top:50%;
+        left:50%;
+        position: absolute;
+        transform: translate(-50%,-50%);
+    }
+    .card{
+        
+        height: 60%;
+    }
+    .d-btn{
+        width:min-content;
+    }
+   
+    #bg-spinner{
+        top:0;
+        z-index: 100;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        display: none;
+        background-color: rgba(1,1,1,0.7);
+    }
+    #position-spinner{
+        height:100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #spinner{
+        height: 60px;
+        width: 60px;
+        border-radius: 50%;
+        border: 6px solid #d3d3d3;
+        border-top: 6px solid red;
+        animation: loading 1s infinite linear;
+    }
+    .pls{
+        position: absolute;
+        top:55%;
+        color: azure;
+        font-size: 15px;
+        font-weight: 700;
+    }
+    @keyframes loading{
+        to{
+            transform: rotate(360deg);
+        }
+    }
+    .rbtn{
+        position: absolute;
+        top: 59%;
+        right: 2%;
+        padding: 2rem;
+        margin: 2px 5px 2px 5px;
+        width:150px;
+    }
+  
+</style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+</head>
+<body>
+    
+    <div id="bg-spinner">
+        <div id="position-spinner">
+            <span id="spinner"></span>
+            <p class="pls">Please Wait....</p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="card card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div>
+                    <label for="formFileLg" class="form-label">Upload Excel File</label>
+                    <input class="form-control form-control-lg" id="formFileLg" type="file" name="excel_file">
+                    <br>
+                  
+                    {% if file %}
+                    
+                    {% else %}
+                    <input type="submit" value="Submit" class="btn" id="btn-send" style="color: white; background-color:#515151">
+                    {% endif %}
+                    
+                </div>
+                
+            </form>
+            <br>
+            
+           {% if file %}
+           <a href="{% url 'automater:download' %}"><button class="btn btn-success d-btn" style="color: #ffffff;background-color: #32a200;">Download</button></a>
+           {% endif %}
+        </div>
+        <a href="{% url 'automater:refresh' %}"><button class="rbtn btn  d-btn"  style="background-color: #281212;color:white;">Clear Files</button></a>
+        
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.1.js" integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI=" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        (function blink(){
+            $('.blink_me').fadeOut(500).fadeIn(700,blink)
+        } )();
+    </script>
+    <script>
+        jQuery(function ($){
+            $(document).ajaxSend(function (){
+                $("#bg-spinner").fadeIn(500);
+            });
+            $("#btn-send").click(function() {
+                $.ajax({
+                    type:'GET',
+                    success:function(data){
+                        var d=$.parseJSON(data);
+                        alert(d.Test)
+                    }
+                }).done(function(){
+                    setTimeout(function(){
+                        $("#bg-spinner").fadeOut(500);
+                    },700);
+                    
+                });
+                // $('#formFileLg').prop('disabled', true);
+            });
+        });
+    </script>
+</body>
+</html>
