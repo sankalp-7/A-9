@@ -1,8 +1,8 @@
-from asyncio.windows_events import NULL
-from calendar import c
-from csv import excel_tab
+
+
 import datetime
 import random
+import pythoncom
 import openpyxl
 from django.http import HttpResponse
 from django.shortcuts import render,redirect
@@ -30,6 +30,9 @@ from docx2pdf import convert
 
 # Create your views here.
 def home(request):
+    pythoncom.CoInitialize()
+
+
     if request.method=='POST' and request.FILES:
         file=request.FILES['excel_file']
         obj=excel.objects.create(excel_file=file)
@@ -199,16 +202,19 @@ def home(request):
             df3=pd.read_excel(f'{req_path_temp}/data.xlsx',sheet_name='admin')
             coa_admin=df3['COA'].values
             doc_admin=df3['DOC'].values
+            df4=pd.read_excel(file,sheet_name='doc')
+            check_coa=df4['downloaddoc'].values[0]
+            check_doc=df4['downloaddoc'].values[1]
+            check_pdf_coa=df4['pdf'].values[0]
+            check_pdf_doc=df4['pdf'].values[1]
             admin_context={}
             flag=1
             for i in range(len(c1)):
-                # exp=context[c1[i]][c1[i]]['expiry'][0]
-                # exp=int(exp)
-                #finding sampling size
+
                 procode=c1[i]
                 admin_context[procode]={
-                    'COA':coa_admin[i],
-                    'DOC':doc_admin[i],
+                    'COA':check_coa,
+                    'DOC':check_doc,
                 }
               
                 if (procode in context) and (coa_admin[i]==1):
@@ -218,6 +224,7 @@ def home(request):
                 else:
                    
                     sheet.cell(row=i+2, column=7).value = 'ERROR'
+                    continue
                 if (procode in context) and (doc_admin[i]==1):
                     
                
@@ -225,6 +232,7 @@ def home(request):
                 else:
                    
                     sheet.cell(row=i+2, column=8).value = 'ERROR'
+                    continue
                     
                 if os.path.exists(f"{req_path_temp}/sign/{c7[i]}.png"):
                     img_d=f"{req_path_temp}/sign/{c7[i]}.png"
@@ -238,7 +246,7 @@ def home(request):
                 dd[0]=int(dd[0])
                 dd[1]=int(dd[1])
                 expp=context[c1[i]][c1[i]]['expiry']
-                print(expp)
+          
                 if math.isnan(expp):
                  
                     exp_date='NA'
@@ -336,7 +344,7 @@ def home(request):
                         avg10+=p[9]
 
                     p=[]
-                    print(avg5,avg6,avg7,avg8,avg9,avg10)
+                
         
                 try:
                     avg1=avg1/req 
@@ -577,19 +585,19 @@ def home(request):
                     doc.render(context2)
                     if docs.split('.')[0][-1:-4:-1][::-1]=='COA':
                         doc.save(f'output/COAfiles/COA {c1[i]} {c2[i]}.docx')
+                        if check_pdf_coa:
+                            convert(f'output/COAfiles/COA {c1[i]} {c2[i]}.docx',f'output/COAfiles/COA {c1[i]} {c2[i]}.pdf')
+                            os.remove(f'output/COAfiles/COA {c1[i]} {c2[i]}.docx')
+                        
                     else:
                         doc.save(f'output/DOCfiles/DOC {c1[i]} {c2[i]}.docx')
+                        if check_pdf_doc:
+                            convert(f'output/DOCfiles/DOC {c1[i]} {c2[i]}.docx',f'output/DOCfiles/DOC {c1[i]} {c2[i]}.pdf')
+                            os.remove(f'output/DOCfiles/DOC {c1[i]} {c2[i]}.docx')
+
 
                
-                # wdFormatPDF = 17
-                # in_file = f'output/COAfiles/output{c1[i]}.docx'
-                # out_file = f'output/COAfiles/output{c1[i]}.pdf'
-                # os.remove(f'output/COAfiles/output{c1[i]}.docx')
-                # word = comtypes.client.CreateObject('Word.Application')
-                # doc = word.Documents.Open(in_file)
-                # doc.SaveAs(out_file, FileFormat=wdFormatPDF)
-                # doc.Close()
-                # word.Quit()     
+                 
             book.save('output/COAStatusReport.xlsx')
             
 
